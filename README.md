@@ -46,7 +46,7 @@ This project is designed to scrape eBay listings and extract relevant informatio
 ### Scraping eBay Listings
 
 1. **Run the Scraper**:  
-   Execute the `main.py` script to scrape eBay listings and save the data to a CSV file, including image URLs:
+   Ensure you have a CSV file with your eBay listings ready. Execute the `main.py` script to scrape eBay listings and save the data to a new CSV file, including image URLs:
 
    ```sh
    python main.py
