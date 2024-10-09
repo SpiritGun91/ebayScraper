@@ -10,6 +10,7 @@
 - Scrapes eBay for image URLs based on listing IDs.
 - Updates the CSV file with the fetched image URLs.
 - Handles network errors gracefully.
+- Displays a progress bar to track the scraping process.
 
 ## Requirements
 
@@ -17,6 +18,7 @@
 - `pandas`
 - `requests`
 - `beautifulsoup4`
+- `tqdm`
 
 ## Installation
 

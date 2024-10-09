@@ -1,6 +1,7 @@
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
+from tqdm import tqdm
 
 # Read the CSV file
 try:
@@ -25,8 +26,9 @@ def scrape_image_url(listing_id):
         return image_tag['src']
     return ''
 
-# Add a new column for image URLs
-df['image_url'] = df['Item number'].apply(scrape_image_url)
+# Add a new column for image URLs with progress bar
+tqdm.pandas(desc="Scraping eBay listings")
+df['image_url'] = df['Item number'].progress_apply(scrape_image_url)
 
 # Save the updated DataFrame to a new CSV file
 df.to_csv('updated_listings.csv', index=False)
