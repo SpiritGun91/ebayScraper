@@ -23,7 +23,10 @@ def scrape_image_url(listing_id):
     soup = BeautifulSoup(response.text, 'html.parser')
     image_tag = soup.find('img', {'id': 'icImg'})
     if image_tag:
-        return image_tag['src']
+        image_url = image_tag['src']
+        print(f"Found image URL for listing ID {listing_id}: {image_url}")
+        return image_url
+    print(f"No image found for listing ID {listing_id}")
     return ''
 
 # Add a new column for image URLs with progress bar
@@ -32,3 +35,5 @@ df['image_url'] = df['Item number'].progress_apply(scrape_image_url)
 
 # Save the updated DataFrame to a new CSV file
 df.to_csv('updated_listings.csv', index=False)
+
+print("Updated CSV file has been saved as 'updated_listings.csv'")

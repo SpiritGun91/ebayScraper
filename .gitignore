@@ -112,3 +112,6 @@ venv.bak/
 # Windows
 Thumbs.db
 ehthumbs.db
+
+# LibreOffice lock files
+.~lock.*
