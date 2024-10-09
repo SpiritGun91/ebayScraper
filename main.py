@@ -1,7 +1,18 @@
 import pandas as pd
-import requests
-from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from tqdm import tqdm
+
+# Configure Selenium WebDriver
+chrome_options = Options()
+chrome_options.add_argument("--headless")  # Run in headless mode
+chrome_options.add_argument("--no-sandbox")
+chrome_options.add_argument("--disable-dev-shm-usage")
+service = Service('/usr/bin/chromedriver')  # Update with the path to your ChromeDriver
 
 # Read the CSV file
 try:
@@ -10,30 +21,41 @@ except FileNotFoundError:
     print("CSV file not found.")
     exit(1)
 
-# Function to scrape image URL from eBay
-def scrape_image_url(listing_id):
-    url = f"https://www.ebay.com/itm/{listing_id}"
+# Function to scrape all image URLs from eBay using Selenium
+def scrape_image_urls(item_number):
+    url = f"https://www.ebay.com/itm/{item_number}"
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+    driver.get(url)
+    
     try:
-        response = requests.get(url)
-        response.raise_for_status()
-    except requests.RequestException as e:
-        print(f"Request failed for listing ID {listing_id}: {e}")
+        # Wait for the images to load
+        WebDriverWait(driver, 15).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'img[src]'))
+        )
+        
+        # Find all image elements with a 'src' attribute
+        image_elements = driver.find_elements(By.CSS_SELECTOR, 'img[src]')
+        image_urls = [img.get_attribute('src') for img in image_elements]
+        
+        # Only return unique URLs and avoid duplicate thumbnails, if necessary
+        unique_image_urls = list(set(image_urls))
+        print(f"Found {len(unique_image_urls)} image URLs for item number {item_number}")
+        
+        # Return all URLs as a comma-separated string
+        return ','.join(unique_image_urls)
+    
+    except Exception as e:
+        print(f"Failed to find images for item number {item_number}: {e}")
         return ''
     
-    soup = BeautifulSoup(response.text, 'html.parser')
-    image_tag = soup.find('img', {'id': 'icImg'})
-    if image_tag:
-        image_url = image_tag['src']
-        print(f"Found image URL for listing ID {listing_id}: {image_url}")
-        return image_url
-    print(f"No image found for listing ID {listing_id}")
-    return ''
+    finally:
+        driver.quit()
 
 # Add a new column for image URLs with progress bar
 tqdm.pandas(desc="Scraping eBay listings")
-df['image_url'] = df['Item number'].progress_apply(scrape_image_url)
+df['image_urls'] = df['Item number'].progress_apply(scrape_image_urls)
 
 # Save the updated DataFrame to a new CSV file
-df.to_csv('updated_listings.csv', index=False)
+df.to_csv('updated_listings_with_images.csv', index=False)
 
-print("Updated CSV file has been saved as 'updated_listings.csv'")
+print("Updated CSV file has been saved as 'updated_listings_with_images.csv'")
